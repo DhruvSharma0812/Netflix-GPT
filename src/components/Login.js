@@ -1,17 +1,84 @@
-import React, { useState } from 'react';
-import Header from './Header';
+import React, { useRef, useState } from "react";
+import Header from "./Header";
+import { checkValidData } from "../utils/validate";
+import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../utils/firebase";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
 
-    const [isSignIn, setSignIn] = useState (true);
+  const [isSignIn, setSignIn] = useState(true);
+  const [errormsg, setErrorMsg] = useState(null);
+  const email = useRef(null);
+  const password = useRef(null); // They are the refrene to input box
+  const name = useRef (null);
+  const navigate = useNavigate();
 
-    const toggleSignInForm = () => {
-        setSignIn(!isSignIn)
+  const toggleSignInForm = () => {
+    setSignIn(!isSignIn);
+  };
+
+  const handleButtonClick = () => {
+    // Validate the form data
+    // console.log(email.current.value)
+    // console.log(password.current.value)
+
+    const msg = checkValidData(email.current.value, password.current.value);
+    setErrorMsg(msg);
+    // console.log(msg);
+
+    if (msg) return;
+
+    // Sign In / Sign Up Logic
+    if (!isSignIn) {
+      // Sign Up Logic
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          updateProfile(auth.currentUser, {
+            displayName: name.current.value , photoURL: "https://example.com/jane-q-user/profile.jpg"
+          }).then(() => {
+            // Profile updated!
+            // ...
+          }).catch((error) => {
+            // An error occurred
+            // ...
+          });
+          console.log(user);
+          navigate("/browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMsg(errorCode + " - " + errorMessage);
+      });
+
+    } else {
+      // Sign In Logic
+      signInWithEmailAndPassword(auth, email.current.value, password.current.value)
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log (user)
+          navigate ("/browse");
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMsg (errorCode + " - " + errorMessage)
+        });
     }
+  };
 
   return (
     <div className="relative h-screen">
-      <Header />
+      <Header state = {false} />
+
       {/* Background Image */}
       <div className="absolute inset-0 bg-gray-200">
         <img
@@ -19,45 +86,62 @@ const Login = () => {
           src="https://assets.nflxext.com/ffe/siteui/vlv3/655a9668-b002-4262-8afb-cf71e45d1956/5ff265b6-3037-44b2-b071-e81750b21783/IN-en-20240715-POP_SIGNUP_TWO_WEEKS-perspective_WEB_c6d6616f-4478-4ac2-bdac-f54b444771dd_large.jpg"
           alt="Netflix Background"
         />
-        <div className="absolute inset-0 bg-black opacity-50"></div>
+        <div className="absolute inset-0 bg-black opacity-65"></div>
       </div>
+
       {/* Sign-in Form */}
       <div className="relative z-10 flex items-center justify-center h-full">
-        <form className="bg-black bg-opacity-75 p-10 w-3/12 rounded-lg shadow-lg">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="bg-black bg-opacity-75 p-10 w-3/12 rounded-lg shadow-lg"
+        >
           <h1 className="font-bold text-3xl text-white mb-6">
             {isSignIn ? "Sign In" : "Sign Up"}
           </h1>
-          {!isSignIn && <input
-            type="text"
-            placeholder="Name"
-            className="w-full p-3 my-2 mb-4 rounded-lg bg-gray-700 shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
-          />
-}
+          {!isSignIn && (
+            <input
+              type="text"
+              placeholder="Name"
+              className="w-full p-3 my-2 mb-4 rounded-lg bg-gray-700 text-white shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+              ref={name}
+            />
+          )}
           <input
             type="text"
             placeholder="Email Address"
-            className="w-full p-3 mb-4 rounded-lg bg-gray-700 shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full p-3 mb-4 rounded-lg text-white bg-gray-700 shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+            ref={email}
           />
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-3 mb-6 rounded-lg bg-gray-700 shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+            className="w-full p-3 mb-6 rounded-lg text-white bg-gray-700 shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+            ref={password}
           />
+
+          <p className="text-red-500"> {errormsg} </p>
+
           <button
             type="submit"
             className="w-full my-4 bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg shadow-md transition duration-300 ease-in-out"
+            onClick={handleButtonClick}
           >
             {isSignIn ? "Sign In" : "Sign Up"}
           </button>
 
-          <p className='text-white mt-6 cursor-pointer' onClick={toggleSignInForm}>
-          {isSignIn 
-            ? "New to Netflix Sign Up Now"
-            : "Alerady Registered Sing In Now" 
-          }
+          <p
+            className="text-white mt-6 cursor-pointer"
+            onClick={toggleSignInForm}
+          >
+            {isSignIn
+              ? "New to Netflix Sign Up Now"
+              : "Alerady Registered Sing In Now"}
           </p>
-          <p className='text-gray-500 text-xs mt-6' >This page is protected by Google reCAPTCHA to ensure you're not a bot. 
-            <span className='text-blue-400 cursor-pointer'>Learn more.</span></p>
+          <p className="text-gray-500 text-xs mt-6">
+            This page is protected by Google reCAPTCHA to ensure you're not a
+            bot.
+            <span className="text-blue-400 cursor-pointer">Learn more.</span>
+          </p>
         </form>
       </div>
     </div>
