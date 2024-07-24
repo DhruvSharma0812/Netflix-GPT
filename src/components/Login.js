@@ -3,7 +3,7 @@ import Header from "./Header";
 import { checkValidData } from "../utils/validate";
 import { createUserWithEmailAndPassword, updateProfile, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../utils/firebase";
-import { useNavigate } from "react-router-dom";
+import { AVTAR_LOGO, Background } from "../utils/constants";
 
 const Login = () => {
 
@@ -12,7 +12,6 @@ const Login = () => {
   const email = useRef(null);
   const password = useRef(null); // They are the refrene to input box
   const name = useRef (null);
-  const navigate = useNavigate();
 
   const toggleSignInForm = () => {
     setSignIn(!isSignIn);
@@ -41,7 +40,8 @@ const Login = () => {
           // Signed up
           const user = userCredential.user;
           updateProfile(auth.currentUser, {
-            displayName: name.current.value , photoURL: "https://example.com/jane-q-user/profile.jpg"
+            displayName: name.current.value ,
+            photoURL: AVTAR_LOGO
           }).then(() => {
             // Profile updated!
             // ...
@@ -49,8 +49,7 @@ const Login = () => {
             // An error occurred
             // ...
           });
-          console.log(user);
-          navigate("/browse");
+          // console.log(user);
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -65,7 +64,6 @@ const Login = () => {
           // Signed in
           const user = userCredential.user;
           console.log (user)
-          navigate ("/browse");
         })
         .catch((error) => {
           const errorCode = error.code;
@@ -83,7 +81,7 @@ const Login = () => {
       <div className="absolute inset-0 bg-gray-200">
         <img
           className="absolute inset-0 object-cover w-full h-full"
-          src="https://assets.nflxext.com/ffe/siteui/vlv3/655a9668-b002-4262-8afb-cf71e45d1956/5ff265b6-3037-44b2-b071-e81750b21783/IN-en-20240715-POP_SIGNUP_TWO_WEEKS-perspective_WEB_c6d6616f-4478-4ac2-bdac-f54b444771dd_large.jpg"
+          src= {Background}
           alt="Netflix Background"
         />
         <div className="absolute inset-0 bg-black opacity-65"></div>

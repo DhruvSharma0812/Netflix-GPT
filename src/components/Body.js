@@ -1,53 +1,44 @@
-import React, { useEffect } from 'react'
-import Login from './Login'
-import Browse from './Browse'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import Home from './Home'
-import {  onAuthStateChanged } from "firebase/auth";
-import { auth } from '../utils/firebase'
-import { useDispatch } from 'react-redux'
-import { addUser, removeUser } from '../utils/userSlice'
+import React, { useEffect } from 'react';
+import { useNavigate, useRoutes } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../utils/firebase';
+import { useDispatch, useSelector } from 'react-redux';
+import { addUser, removeUser } from '../utils/userSlice';
+import Login from './Login';
+import Browse from './Browse';
+import Home from './Home';
 
 const Body = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.user);
 
-    const dispatch = useDispatch();
-
-    const appRouter = createBrowserRouter ([
-        {
-            path: "/",
-            element: <Home />
-        },
-        {
-            path: "/browse",
-            element: <Browse />
-        },
-        {
-            path: "/login",
-            element: <Login />
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in
+        const { uid, email, displayName, photoURL } = user;
+        dispatch(addUser({ uid, email, displayName, photoURL }));
+      } else {
+        // User is signed out
+        dispatch(removeUser());
+        if (window.location.pathname === '/browse') {
+          navigate('/login');
         }
-    ])
+      }
+    });
 
-    useEffect(() => {
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-              // User is signed in, see docs for a list of available properties
-              // https://firebase.google.com/docs/reference/js/auth.user
-              const {uid, email, displayName} = user;
-              dispatch ( addUser({uid: uid, email:email, displayName: displayName}) )
-            } 
-            
-            else {
-              // User is signed out
-              dispatch (removeUser())
-            } 
-        });
-    }, [])
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
 
-  return (
-    <div>
-        <RouterProvider router={appRouter} />
-    </div>
-  )
-}
+  const routes = useRoutes([
+    { path: '/', element: <Home /> },
+    { path: '/browse', element: user ? <Browse /> : <Login /> },
+    { path: '/login', element: user ? <Browse /> : <Login /> },
+  ]);
 
-export default Body
+  return <div>{routes}</div>;
+};
+
+export default Body;
