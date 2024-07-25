@@ -17,7 +17,7 @@ const Header = ({ state }) => {
   };
 
   return (
-    <div className="flex items-center justify-between w-full absolute px-8 py-2 bg-gradient-to-b from-black z-50">
+    <div className="flex items-center justify-between w-full absolute px-8 py-2 bg-opacity-80 bg-gradient-to-b from-black z-50">
       <Link to="/" className="cursor-pointer">
         <img
           className="w-44"

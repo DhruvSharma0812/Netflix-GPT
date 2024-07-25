@@ -13,9 +13,9 @@ const useMovieTrailer = (movieId) => {
         // console.log (json);
 
         const filteredData = json.results.filter((video) => video.type === "Trailer");
-        const trailer = filteredData.length ? filteredData[Math.floor(Math.random() * filteredData.length)] : json.results[0];
-        // const trailer = filteredData[0];
-        console.log(trailer.key)
+        // const trailer = filteredData.length ? filteredData[Math.floor(Math.random() * filteredData.length)] : json.results[0];
+        const trailer = filteredData.length ? (filteredData[1] ? filteredData[1] : filteredData[0]) : json.results[0];
+        // console.log(trailer.key)
         dispatch (addTrailerVideo(trailer))
     }
 
