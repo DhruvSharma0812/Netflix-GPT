@@ -5,10 +5,10 @@ import VideoBackground from './VideoBackground'
 
 const MainContainer = () => {
 
-  const movies = useSelector(store => store.movies?.nowPlayingMovies)
+  const movies = useSelector(store => store.movies?.upcomingMovies)
   if (!movies) return // Early Return
 
-  const mainMovie = movies[Math.floor(Math.random() * 5)];
+  const mainMovie = movies[Math.floor(Math.random() * 3)];
   // console.log (movies)
   // const mainMovie = movies[0];
   // console.log (mainMovie)
